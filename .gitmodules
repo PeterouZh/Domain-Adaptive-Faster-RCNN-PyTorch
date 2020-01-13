@@ -1,0 +1,12 @@
+[submodule "domain_adaptive_faster_rcnn_pytorch_exp"]
+	path = domain_adaptive_faster_rcnn_pytorch_exp
+	url = https://github.com/PeterouZh/domain_adaptive_faster_rcnn_pytorch_exp.git
+[submodule "template_lib"]
+	path = template_lib
+	url = https://github.com/PeterouZh/template_lib.git
+[submodule "cityscapesScripts"]
+	path = cityscapesScripts
+	url = https://github.com/PeterouZh/cityscapesScripts.git
+[submodule "cocoapi"]
+	path = cocoapi
+	url = https://github.com/PeterouZh/cocoapi.git

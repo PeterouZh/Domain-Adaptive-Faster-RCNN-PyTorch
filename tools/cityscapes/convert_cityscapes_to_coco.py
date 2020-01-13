@@ -30,8 +30,8 @@ import scipy.misc
 import sys
 import numpy as np
 
-import cityscapesscripts.evaluation.instances2dict_with_polygons as cs
-
+import tools.cityscapes.instances2dict_with_polygons as cs
+# import cityscapesscripts.evaluation.instances2dict_with_polygons as cs
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Convert dataset')
@@ -42,9 +42,9 @@ def parse_args():
     parser.add_argument(
         '--datadir', help="data dir for annotations to be converted",
         default=None, type=str)
-    if len(sys.argv) == 1:
-        parser.print_help()
-        sys.exit(1)
+    # if len(sys.argv) == 1:
+    #     parser.print_help()
+    #     sys.exit(1)
     return parser.parse_args()
 
 def xyxy_to_xywh(xyxy):
@@ -129,21 +129,13 @@ def convert_cityscapes_instance_only(
     sets = [
         'gtFine_val',
         'gtFine_train',
-        'gtFine_test',
+        # 'gtFine_test',
 
         # 'gtCoarse_train',
         # 'gtCoarse_val',
         # 'gtCoarse_train_extra'
     ]
-    ann_dirs = [
-        'gtFine_trainvaltest/gtFine/val',
-        'gtFine_trainvaltest/gtFine/train',
-        'gtFine_trainvaltest/gtFine/test',
 
-        # 'gtCoarse/train',
-        # 'gtCoarse/train_extra',
-        # 'gtCoarse/val'
-    ]
     json_name = 'instancesonly_filtered_%s.json'
     ends_in = '%s_polygons.json'
     img_id = 0
@@ -166,27 +158,30 @@ def convert_cityscapes_instance_only(
         category_dict[cat] = cat_id
         cat_id += 1
 
-    for data_set, ann_dir in zip(sets, ann_dirs):
+    for data_set in sets:
+        ann_dir = data_set.split('_')[1]
         print('Starting %s' % data_set)
         ann_dict = {}
         images = []
         annotations = []
         ann_dir = os.path.join(data_dir, ann_dir)
         for root, _, files in os.walk(ann_dir):
+            subdir = os.path.relpath(root, data_dir)
             for filename in files:
                 if filename.endswith(ends_in % data_set.split('_')[0]):
                     if len(images) % 50 == 0:
                         print("Processed %s images, %s annotations" % (
                             len(images), len(annotations)))
-                    json_ann = json.load(open(os.path.join(root, filename)))
+                    with open(os.path.join(root, filename)) as f:
+                        json_ann = json.load(f)
                     image = {}
                     image['id'] = img_id
                     img_id += 1
 
                     image['width'] = json_ann['imgWidth']
                     image['height'] = json_ann['imgHeight']
-                    image['file_name'] = filename[:-len(
-                        ends_in % data_set.split('_')[0])] + 'leftImg8bit.png'
+                    image['file_name'] = os.path.join(
+                        subdir, filename[:-len(ends_in % data_set.split('_')[0])] + 'leftImg8bit.png')
                     image['seg_file_name'] = filename[:-len(
                         ends_in % data_set.split('_')[0])] + \
                         '%s_instanceIds.png' % data_set.split('_')[0]
@@ -229,7 +224,7 @@ def convert_cityscapes_instance_only(
                             annotations.append(ann)
 
         ann_dict['images'] = images
-        categories = [{"id": category_dict[name], "name": name} for name in
+        categories = [{"id": category_dict[name], "name": name, "supercategory": 'none'} for name in
                       category_instancesonly]
         ann_dict['categories'] = categories
         ann_dict['annotations'] = annotations
@@ -237,15 +232,31 @@ def convert_cityscapes_instance_only(
         print(categories)
         print("Num images: %s" % len(images))
         print("Num annotations: %s" % len(annotations))
+        os.makedirs(out_dir, exist_ok=True)
         with open(os.path.join(out_dir, json_name % data_set), 'w') as outfile:
-            outfile.write(json.dumps(ann_dict))
+            # outfile.write(json.dumps(ann_dict))
+            json.dump(ann_dict, outfile)
+
+
+def run(argv_str=None):
+  from template_lib.utils.config import parse_args_and_setup_myargs, config2args
+  args1, myargs, _ = parse_args_and_setup_myargs(argv_str, start_tb=False)
+  myargs.args = args1
+  myargs.config = getattr(myargs.config, args1.command)
+
+  args = parse_args()
+  args = config2args(myargs.config, args)
+
+  args.datadir = os.path.expanduser(args.datadir)
+  args.outdir = os.path.expanduser(args.outdir)
+
+  if args.dataset == "cityscapes_instance_only":
+      convert_cityscapes_instance_only(args.datadir, args.outdir)
+  elif args.dataset == "cocostuff":
+      convert_coco_stuff_mat(args.datadir, args.outdir)
+  else:
+      print("Dataset not supported: %s" % args.dataset)
 
 
 if __name__ == '__main__':
-    args = parse_args()
-    if args.dataset == "cityscapes_instance_only":
-        convert_cityscapes_instance_only(args.datadir, args.outdir)
-    elif args.dataset == "cocostuff":
-        convert_coco_stuff_mat(args.datadir, args.outdir)
-    else:
-        print("Dataset not supported: %s" % args.dataset)
+  run()

@@ -106,11 +106,11 @@ class DatasetCatalog(object):
         },
         "foggy_cityscapes_fine_instanceonly_seg_train_cocostyle": {
             "img_dir": "foggy_cityscapes/images",
-            "ann_file": "foggy_cityscapes/annotations/foggy_instancesonly_filtered_gtFine_train.json"
+            "ann_file": "foggy_cityscapes/annotations/instancesonly_filtered_gtFine_train.json"
         },
         "foggy_cityscapes_fine_instanceonly_seg_val_cocostyle": {
             "img_dir": "foggy_cityscapes/images",
-            "ann_file": "foggy_cityscapes/annotations/foggy_instancesonly_filtered_gtFine_val.json"
+            "ann_file": "foggy_cityscapes/annotations/instancesonly_filtered_gtFine_val.json"
         },
         'sim10k_cocostyle': {
                 "img_dir": 'sim10k/JPEGImages',

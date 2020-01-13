@@ -24,6 +24,9 @@ from maskrcnn_benchmark.utils.comm import synchronize, get_rank
 from maskrcnn_benchmark.utils.imports import import_file
 from maskrcnn_benchmark.utils.logger import setup_logger
 from maskrcnn_benchmark.utils.miscellaneous import mkdir
+from maskrcnn_benchmark.utils import comm
+
+from template_lib.utils.config import config2args, setup_myargs_for_multiple_processing
 
 
 def train(cfg, local_rank, distributed):
@@ -137,7 +140,7 @@ def test(cfg, model, distributed):
         synchronize()
 
 
-def main():
+def main(myargs):
     parser = argparse.ArgumentParser(description="PyTorch Object Detection Training")
     parser.add_argument(
         "--config-file",
@@ -161,11 +164,14 @@ def main():
     )
 
     args = parser.parse_args()
+    args = config2args(myargs.config, args)
+    cfg.OUTPUT_DIR = os.path.join(myargs.args.outdir, 'maskrcnn_benchmark')
 
     num_gpus = int(os.environ["WORLD_SIZE"]) if "WORLD_SIZE" in os.environ else 1
     args.distributed = num_gpus > 1
 
     if args.distributed:
+        myargs = setup_myargs_for_multiple_processing(myargs)
         torch.cuda.set_device(args.local_rank)
         torch.distributed.init_process_group(
             backend="nccl", init_method="env://"
@@ -184,6 +190,14 @@ def main():
     logger.info("Using {} GPUs".format(num_gpus))
     logger.info(args)
 
+    if comm.is_main_process():
+        # Note: some of our scripts may expect the existence of
+        # config.yaml in output directory
+        path = os.path.join(output_dir, "config.yaml")
+        with open(path, "w") as f:
+            f.write(cfg.dump())
+        logger.info("Full config saved to {}".format(os.path.abspath(path)))
+
     logger.info("Collecting env info (might take some time)")
     logger.info("\n" + collect_env_info())
 
@@ -199,5 +213,15 @@ def main():
         test(cfg, model, args.distributed)
 
 
+
+def run(argv_str=None):
+  from template_lib.utils.config import parse_args_and_setup_myargs, config2args
+  args1, myargs, _ = parse_args_and_setup_myargs(argv_str, start_tb=False)
+  myargs.args = args1
+  myargs.config = getattr(myargs.config, args1.command)
+
+  main(myargs)
+
+
 if __name__ == "__main__":
-    main()
+  run()

@@ -1,0 +1,37 @@
+version: '2.3'
+services:
+  domain_adaptive_faster_rcnn:
+    #image: tensorflow/tensorflow:1.11.0-gpu
+    build:
+      context: .
+      dockerfile: ./Dockerfile1
+      network: host
+    user: root:root
+    #container_name: tf_1_11_py3-DCGAN-LSGAN-WGAN-WGAN-GP-Tensorflow
+    network_mode: 'host'
+    ipc: host
+    ports:
+      - '8888:8888'
+      - '8889:8889'
+    volumes:
+      - .:/opt/project
+      - ~/.keras:/root/.keras
+      - ~/.keras/cityscapes/cityscapes/images:/opt/project/datasets/cityscapes/images
+      - ~/.keras/cityscapes/cityscapes/annotations:/opt/project/datasets/cityscapes/annotations
+      - ~/.keras/cityscapes/foggy_cityscapes/images_0.02:/opt/project/datasets/foggy_cityscapes/images
+      - ~/.keras/cityscapes/foggy_cityscapes/annotations:/opt/project/datasets/foggy_cityscapes/annotations
+      - ~/.keras/domain_adaptive_faster_rcnn:/opt/project/datasets/models
+      - ~/.torch:/root/.torch
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    working_dir: /opt/project
+    runtime: nvidia
+    environment:
+      - DISPLAY
+      - QT_X11_NO_MITSHM=1
+      - NVIDIA_VISIBLE_DEVICES=all
+      - PYTHONPATH=/opt
+    entrypoint: ''
+    #    entrypoint: bash entrypoint.sh
+    command: 'jupyter notebook --allow-root --ip=127.0.0.1'
+    # command: >
+    #  bash -c "jupyter notebook --allow-root --ip=127.0.0.1 && echo Block"
