@@ -7,6 +7,3 @@
 [submodule "cityscapesScripts"]
 	path = cityscapesScripts
 	url = https://github.com/PeterouZh/cityscapesScripts.git
-[submodule "cocoapi"]
-	path = cocoapi
-	url = https://github.com/PeterouZh/cocoapi.git
