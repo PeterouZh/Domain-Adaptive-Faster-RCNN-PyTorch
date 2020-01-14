@@ -51,6 +51,7 @@ def main(myargs):
 
     cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)
+    cfg.OUTPUT_DIR = myargs.args.outdir
     cfg.freeze()
 
     output_dir = cfg.OUTPUT_DIR
