@@ -163,7 +163,7 @@ def main(myargs):
         nargs=argparse.REMAINDER,
     )
 
-    args = parser.parse_args()
+    args = parser.parse_args([])
     args = config2args(myargs.config, args)
     cfg.OUTPUT_DIR = os.path.join(myargs.args.outdir, 'maskrcnn_benchmark')
 
@@ -180,6 +180,8 @@ def main(myargs):
 
     cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)
+    if 'opts_private' in args:
+        cfg.merge_from_list(args.opts_private)
     cfg.freeze()
 
     output_dir = cfg.OUTPUT_DIR
@@ -216,10 +218,12 @@ def main(myargs):
 
 def run(argv_str=None):
   from template_lib.utils.config import parse_args_and_setup_myargs, config2args
+  from template_lib.utils.modelarts_utils import prepare_dataset
   args1, myargs, _ = parse_args_and_setup_myargs(argv_str, start_tb=False)
   myargs.args = args1
   myargs.config = getattr(myargs.config, args1.command)
 
+  prepare_dataset(myargs.config.dataset)
   main(myargs)
 
 
