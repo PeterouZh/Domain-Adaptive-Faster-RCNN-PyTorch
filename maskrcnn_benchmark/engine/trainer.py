@@ -47,6 +47,9 @@ def do_train(
     device,
     checkpoint_period,
     arguments,
+    cfg,
+    myargs,
+    distributed
 ):
     logger = logging.getLogger("maskrcnn_benchmark.trainer")
     logger.info("Start training")
@@ -58,7 +61,7 @@ def do_train(
     end = time.time()
     for iteration, (images, targets, _) in enumerate(data_loader, start_iter):
         data_time = time.time() - end
-        iteration = iteration + 1
+        iteration = iteration * 2
         arguments["iteration"] = iteration
 
         scheduler.step()
@@ -87,6 +90,8 @@ def do_train(
         eta_string = str(datetime.timedelta(seconds=int(eta_seconds)))
 
         if iteration % 20 == 0 or iteration == max_iter:
+            Trainer.summary_dict2txtfig(dict_data=loss_dict_reduced, prefix='do_da_train',
+                                        step=iteration, textlogger=myargs.textlogger, in_one_axe=False)
             logger.info(
                 meters.delimiter.join(
                     [
@@ -106,8 +111,17 @@ def do_train(
             )
         if iteration % checkpoint_period == 0:
             checkpointer.save("model_{:07d}".format(iteration), **arguments)
+            modelarts_sync_results(args=myargs.args, myargs=myargs, join=False, end=False)
         if iteration == max_iter:
             checkpointer.save("model_final", **arguments)
+        if iteration % myargs.config.EVAL_PERIOD == 0 or iteration == max_iter:
+            from tools.train_net import test
+            eval_rets = test(cfg=cfg, model=model, distributed=distributed)
+            default_dict = Trainer.dict_of_dicts2defaultdict(eval_rets)
+            Trainer.summary_defaultdict2txtfig(default_dict=default_dict, prefix='eval', step=iteration,
+                                               textlogger=myargs.textlogger)
+            modelarts_sync_results(args=myargs.args, myargs=myargs, join=False, end=False)
+            model.train()
 
     total_training_time = time.time() - start_training_time
     total_time_str = str(datetime.timedelta(seconds=total_training_time))
@@ -169,7 +183,7 @@ def do_da_train(
         eta_seconds = meters.time.global_avg * (max_iter - iteration)
         eta_string = str(datetime.timedelta(seconds=int(eta_seconds)))
 
-        if iteration % 20 == 0 or iteration == max_iter:
+        if iteration % 20 == 0 or iteration == max_iter - 1:
             Trainer.summary_dict2txtfig(dict_data=loss_dict_reduced, prefix='do_da_train',
                                         step=iteration, textlogger=myargs.textlogger, in_one_axe=False)
             logger.info(
@@ -197,7 +211,7 @@ def do_da_train(
         if torch.isnan(losses_reduced).any():
             logger.critical('Loss is NaN, exiting...')
             return
-        if iteration % myargs.config.EVAL_PERIOD == 0:
+        if iteration % myargs.config.EVAL_PERIOD == 0 or iteration == max_iter - 1:
             from tools.train_net import test
             eval_rets = test(cfg=cfg, model=model, distributed=distributed)
             default_dict = Trainer.dict_of_dicts2defaultdict(eval_rets)
