@@ -61,7 +61,7 @@ def do_train(
     end = time.time()
     for iteration, (images, targets, _) in enumerate(data_loader, start_iter):
         data_time = time.time() - end
-        iteration = iteration * 2
+        iteration = iteration * cfg.SOLVER.IMS_PER_BATCH
         arguments["iteration"] = iteration
 
         scheduler.step()

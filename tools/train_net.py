@@ -47,7 +47,7 @@ def train(cfg, local_rank, distributed, myargs):
             # this should be removed if we update BatchNorm stats
             broadcast_buffers=False,
         )
-
+    print(model)
     arguments = {}
     arguments["iteration"] = 0
 
