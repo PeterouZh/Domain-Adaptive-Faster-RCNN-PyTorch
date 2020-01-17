@@ -190,8 +190,8 @@ def do_da_train(
                 )
             )
         if iteration % checkpoint_period == 0:
-            modelarts_sync_results(args=myargs.args, myargs=myargs, join=False, end=False)
             checkpointer.save("model_{:07d}".format(iteration), **arguments)
+            modelarts_sync_results(args=myargs.args, myargs=myargs, join=False, end=False)
         if iteration == max_iter-1:
             checkpointer.save("model_final", **arguments)
         if torch.isnan(losses_reduced).any():
@@ -203,6 +203,7 @@ def do_da_train(
             default_dict = Trainer.dict_of_dicts2defaultdict(eval_rets)
             Trainer.summary_defaultdict2txtfig(default_dict=default_dict, prefix='eval', step=iteration,
                                                textlogger=myargs.textlogger)
+            modelarts_sync_results(args=myargs.args, myargs=myargs, join=False, end=False)
             model.train()
 
 
