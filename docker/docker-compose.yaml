@@ -16,6 +16,8 @@ services:
     volumes:
       - .:/opt/project
       - ~/.keras:/root/.keras
+      - ~/.keras/coco_debug/coco/annotations/:/opt/project/datasets/coco/annotations/
+      - ~/.keras/coco/val2017:/opt/project/datasets/coco/val2017
       - ~/.keras/cityscapes/cityscapes/images:/opt/project/datasets/cityscapes/images
       - ~/.keras/cityscapes/cityscapes/annotations:/opt/project/datasets/cityscapes/annotations
       - ~/.keras/cityscapes/foggy_cityscapes/images_0.02:/opt/project/datasets/foggy_cityscapes/images

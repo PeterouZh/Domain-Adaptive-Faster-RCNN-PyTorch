@@ -9,6 +9,9 @@ import torch.distributed as dist
 from maskrcnn_benchmark.utils.comm import get_world_size
 from maskrcnn_benchmark.utils.metric_logger import MetricLogger
 
+from template_lib.utils.modelarts_utils import modelarts_sync_results
+from template_lib.trainer.base_trainer import Trainer
+
 
 def reduce_loss_dict(loss_dict):
     """
@@ -124,7 +127,9 @@ def do_da_train(
     device,
     checkpoint_period,
     arguments,
-    cfg
+    cfg,
+    myargs,
+    distributed
 ):
     logger = logging.getLogger("maskrcnn_benchmark.trainer")
     logger.info("Start training")
@@ -134,6 +139,7 @@ def do_da_train(
     model.train()
     start_training_time = time.time()
     end = time.time()
+    modelarts_sync_results(args=myargs.args, myargs=myargs, join=True, end=False)
     for iteration, ((source_images, source_targets, idx1), (target_images, target_targets, idx2)) in enumerate(zip(source_data_loader, target_data_loader), start_iter):
         data_time = time.time() - end
         arguments["iteration"] = iteration
@@ -164,6 +170,8 @@ def do_da_train(
         eta_string = str(datetime.timedelta(seconds=int(eta_seconds)))
 
         if iteration % 20 == 0 or iteration == max_iter:
+            Trainer.summary_dict2txtfig(dict_data=loss_dict_reduced, prefix='do_da_train',
+                                        step=iteration, textlogger=myargs.textlogger, in_one_axe=False)
             logger.info(
                 meters.delimiter.join(
                     [
@@ -182,12 +190,22 @@ def do_da_train(
                 )
             )
         if iteration % checkpoint_period == 0:
+            modelarts_sync_results(args=myargs.args, myargs=myargs, join=False, end=False)
             checkpointer.save("model_{:07d}".format(iteration), **arguments)
         if iteration == max_iter-1:
             checkpointer.save("model_final", **arguments)
         if torch.isnan(losses_reduced).any():
             logger.critical('Loss is NaN, exiting...')
-            return 
+            return
+        if iteration % myargs.config.EVAL_PERIOD == 0:
+            from tools.train_net import test
+            eval_rets = test(cfg=cfg, model=model, distributed=distributed)
+            default_dict = Trainer.dict_of_dicts2defaultdict(eval_rets)
+            Trainer.summary_defaultdict2txtfig(default_dict=default_dict, prefix='eval', step=iteration,
+                                               textlogger=myargs.textlogger)
+            model.train()
+
+
 
     total_training_time = time.time() - start_training_time
     total_time_str = str(datetime.timedelta(seconds=total_training_time))

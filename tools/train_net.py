@@ -27,9 +27,13 @@ from maskrcnn_benchmark.utils.miscellaneous import mkdir
 from maskrcnn_benchmark.utils import comm
 
 from template_lib.utils.config import config2args, setup_myargs_for_multiple_processing
+from template_lib.utils.modelarts_utils import modelarts_sync_results
 
 
-def train(cfg, local_rank, distributed):
+__all__ = ['run', 'test']
+
+
+def train(cfg, local_rank, distributed, myargs):
     model = build_detection_model(cfg)
     device = torch.device(cfg.MODEL.DEVICE)
     model.to(device)
@@ -85,6 +89,7 @@ def train(cfg, local_rank, distributed):
             checkpoint_period,
             arguments,
             cfg,
+            myargs=myargs, distributed=distributed
         )
     else:
         data_loader = make_data_loader(
@@ -125,8 +130,9 @@ def test(cfg, model, distributed):
             mkdir(output_folder)
             output_folders[idx] = output_folder
     data_loaders_val = make_data_loader(cfg, is_train=False, is_distributed=distributed)
+    results = {}
     for output_folder, dataset_name, data_loader_val in zip(output_folders, dataset_names, data_loaders_val):
-        inference(
+        result, coco_result =  inference(
             model,
             data_loader_val,
             dataset_name=dataset_name,
@@ -138,6 +144,8 @@ def test(cfg, model, distributed):
             output_folder=output_folder,
         )
         synchronize()
+        results[dataset_name] = dict(result.results['bbox'])
+    return results
 
 
 def main(myargs):
@@ -209,10 +217,12 @@ def main(myargs):
         logger.info(config_str)
     logger.info("Running with config:\n{}".format(cfg))
 
-    model = train(cfg, args.local_rank, args.distributed)
+    model = train(cfg, args.local_rank, args.distributed, myargs=myargs)
 
     if not args.skip_test:
         test(cfg, model, args.distributed)
+
+    modelarts_sync_results(args=myargs.args, myargs=myargs, join=True, end=True)
 
 
 
