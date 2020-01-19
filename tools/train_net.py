@@ -230,7 +230,8 @@ def main(myargs):
 def run(argv_str=None):
   from template_lib.utils.config import parse_args_and_setup_myargs, config2args
   from template_lib.utils.modelarts_utils import prepare_dataset
-  args1, myargs, _ = parse_args_and_setup_myargs(argv_str, start_tb=False)
+  run_script = os.path.relpath(__file__, os.getcwd())
+  args1, myargs, _ = parse_args_and_setup_myargs(argv_str, run_script=run_script, start_tb=False)
   myargs.args = args1
   myargs.config = getattr(myargs.config, args1.command)
 
