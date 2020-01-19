@@ -14,8 +14,9 @@ services:
       - '8888:8888'
       - '8889:8889'
     volumes:
-      - .:/opt/project
+      - ..:/opt/project
       - ~/.keras:/root/.keras
+      - ~/.keras/bdd100k:/opt/project/datasets/bdd100k
       - ~/.keras/coco_debug/coco/annotations/:/opt/project/datasets/coco/annotations/
       - ~/.keras/coco/val2017:/opt/project/datasets/coco/val2017
       - ~/.keras/cityscapes/cityscapes/images:/opt/project/datasets/cityscapes/images
@@ -32,8 +33,8 @@ services:
       - QT_X11_NO_MITSHM=1
       - NVIDIA_VISIBLE_DEVICES=all
       - PYTHONPATH=/opt
-    entrypoint: ''
-    #    entrypoint: bash entrypoint.sh
+    entrypoint: ""
+#    entrypoint: bash entrypoint.sh
     command: 'jupyter notebook --allow-root --ip=127.0.0.1'
     # command: >
     #  bash -c "jupyter notebook --allow-root --ip=127.0.0.1 && echo Block"

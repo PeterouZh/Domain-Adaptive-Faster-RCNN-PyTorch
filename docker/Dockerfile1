@@ -62,7 +62,7 @@ ENV FORCE_CUDA=${FORCE_CUDA}
 # && cd maskrcnn-benchmark \
 # && python setup.py build develop
 
-#WORKDIR /maskrcnn-benchmark
+WORKDIR /opt/project
 
 # RUN pip install easydict
 # RUN pip install jupyter
@@ -71,4 +71,4 @@ ENV FORCE_CUDA=${FORCE_CUDA}
 # RUN pip install --no-deps -I torchvision==0.2.1
 # RUN pip install --no-deps -I h5py
 # RUN pip install scipy
-RUN pip install scikit-image
+# RUN pip install scikit-image

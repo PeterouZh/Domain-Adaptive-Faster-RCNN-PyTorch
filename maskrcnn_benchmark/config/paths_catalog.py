@@ -108,6 +108,7 @@ class DatasetCatalog(object):
             "img_dir": "cityscapes/images",
             "ann_file": "cityscapes/annotations/instancesonly_filtered_gtFine_test.json"
         },
+        # foggy_cityscapes train
         "foggy_cityscapes_fine_instanceonly_seg_train_cocostyle": {
             "img_dir": "foggy_cityscapes/images",
             "ann_file": "foggy_cityscapes/annotations/instancesonly_filtered_gtFine_train.json"
@@ -116,6 +117,33 @@ class DatasetCatalog(object):
             "img_dir": "foggy_cityscapes/images",
             "ann_file": "foggy_cityscapes/annotations/instancesonly_filtered_gtFine_val.json"
         },
+        # bdd100k val
+        "bdd100k_val_wo_train_day_night_cocostyle": {
+            "img_dir": "bdd100k/images/100k/val",
+            "ann_file": "bdd100k/labels/bdd100k_val_wo_train_day_night.json"
+        },
+        "bdd100k_val_wo_train_daytime_cocostyle": {
+            "img_dir": "bdd100k/images/100k/val",
+            "ann_file": "bdd100k/labels/bdd100k_val_wo_train_daytime.json"
+        },
+        "bdd100k_val_wo_train_night_cocostyle": {
+            "img_dir": "bdd100k/images/100k/val",
+            "ann_file": "bdd100k/labels/bdd100k_val_wo_train_night.json"
+        },
+        # bdd100k train
+        "bdd100k_train_wo_train_day_night_cocostyle": {
+            "img_dir": "bdd100k/images/100k/train",
+            "ann_file": "bdd100k/labels/bdd100k_train_wo_train_day_night.json"
+        },
+        "bdd100k_train_wo_train_daytime_cocostyle": {
+            "img_dir": "bdd100k/images/100k/train",
+            "ann_file": "bdd100k/labels/bdd100k_train_wo_train_daytime.json"
+        },
+        "bdd100k_train_wo_train_night_cocostyle": {
+            "img_dir": "bdd100k/images/100k/train",
+            "ann_file": "bdd100k/labels/bdd100k_train_wo_train_night.json"
+        },
+
         'sim10k_cocostyle': {
                 "img_dir": 'sim10k/JPEGImages',
                 "ann_file": 'sim10k/car_instances.json'
