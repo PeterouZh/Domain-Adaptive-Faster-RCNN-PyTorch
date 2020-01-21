@@ -28,6 +28,7 @@ from maskrcnn_benchmark.utils import comm
 
 from template_lib.utils.config import config2args, setup_myargs_for_multiple_processing
 from template_lib.utils.modelarts_utils import modelarts_sync_results
+from template_lib.examples import test_bash
 
 
 __all__ = ['run', 'test']
@@ -241,5 +242,4 @@ def run(argv_str=None):
 
 if __name__ == "__main__":
   run()
-  from template_lib.examples import test_bash
   test_bash.TestingUnit().test_resnet(gpu=os.environ['CUDA_VISIBLE_DEVICES'])
